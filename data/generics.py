@@ -4,7 +4,7 @@ from abc import abstractmethod
 
 Atom = TypeVar('Atom')
 Op = TypeVar('Op')
-Domain = TypeVar('Codomain')
+Domain = TypeVar('Domain')
 
 
 class Expr:
@@ -45,6 +45,15 @@ def sample_left_expr(depth: int, atoms: List[Atom], ops: List[Op]) -> Union[Left
         return LeftExpr(left=sample_left_expr(depth=depth-1, atoms=atoms, ops=ops),
                         right=sample(atoms),
                         op=sample(ops))
+
+
+def sample_right_expr(depth: int, atoms: List[Atom], ops: List[Op]) -> Union[RightExpr[Atom, Op], Atom]:
+    if depth == 0:
+        return sample(atoms)
+    else:
+        return RightExpr(left=sample(atoms),
+                         right=sample_right_expr(depth=depth-1, atoms=atoms, ops=ops),
+                         op=sample(ops))
 
 
 def sample(choices: List[Domain]) -> Domain:
