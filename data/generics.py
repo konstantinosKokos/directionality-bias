@@ -38,6 +38,30 @@ class RightExpr(Expr, Generic[Atom, Op]):
         self.op = op
 
 
+@overload
+def flip_expr(expr: LeftExpr[Atom, Op]) -> RightExpr[Atom, Op]:
+    pass
+
+
+@overload
+def flip_expr(expr: RightExpr[Atom, Op]) -> LeftExpr[Atom, Op]:
+    pass
+
+
+@overload
+def flip_expr(expr: Atom) -> Atom:
+    pass
+
+
+def flip_expr(expr):
+    if isinstance(expr, LeftExpr):
+        return RightExpr(left=expr.right, right=flip_expr(expr.left), op=expr.op)
+    elif isinstance(expr, RightExpr):
+        return LeftExpr(left=flip_expr(expr.right), right=expr.left, op=expr.op)
+    else:
+        return expr
+
+
 def sample_left_expr(depth: int, atoms: List[Atom], ops: List[Op]) -> Union[LeftExpr[Atom, Op], Atom]:
     if depth == 0:
         return sample(atoms)
