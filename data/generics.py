@@ -5,6 +5,10 @@ from abc import abstractmethod
 Atom = TypeVar('Atom')
 Op = TypeVar('Op')
 Domain = TypeVar('Domain')
+Something = TypeVar('Something')
+
+Atoms = List[Atom]
+Ops = List[Op]
 
 
 class Expr:
@@ -62,7 +66,7 @@ def flip_expr(expr):
         return expr
 
 
-def sample_left_expr(depth: int, atoms: List[Atom], ops: List[Op]) -> Union[LeftExpr[Atom, Op], Atom]:
+def sample_left_expr(depth: int, atoms: Atoms, ops: Ops) -> Union[LeftExpr[Atom, Op], Atom]:
     if depth == 0:
         return sample(atoms)
     else:
@@ -71,7 +75,7 @@ def sample_left_expr(depth: int, atoms: List[Atom], ops: List[Op]) -> Union[Left
                         op=sample(ops))
 
 
-def sample_right_expr(depth: int, atoms: List[Atom], ops: List[Op]) -> Union[RightExpr[Atom, Op], Atom]:
+def sample_right_expr(depth: int, atoms: Atoms, ops: Ops) -> Union[RightExpr[Atom, Op], Atom]:
     if depth == 0:
         return sample(atoms)
     else:
@@ -80,7 +84,7 @@ def sample_right_expr(depth: int, atoms: List[Atom], ops: List[Op]) -> Union[Rig
                          op=sample(ops))
 
 
-def sample(choices: List[Domain]) -> Domain:
+def sample(choices: List[Something]) -> Something:
     return choice(choices)
 
 
@@ -105,7 +109,10 @@ def eval_rexp(expr: Union[Atom, RightExpr],
 
 def eval_exp(expr: Union[Atom, Expr],
              atom_semantics: Callable[[Atom], Domain],
-             op_semantics: Mapping[Op, Callable[[Domain, Domain], Domain]]):
+             op_semantics: Mapping[Op, Callable[[Domain, Domain], Domain]],
+             invert: bool = False) -> Domain:
+    if invert:
+        expr = flip_expr(expr)
     if isinstance(expr, LeftExpr):
         return eval_lexp(expr, atom_semantics, op_semantics)
     elif isinstance(expr, RightExpr):

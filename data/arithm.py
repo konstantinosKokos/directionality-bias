@@ -18,5 +18,5 @@ def make_atom_list(low: int, high: int) -> List[str]:
     return [str(i) for i in range(low, high)]
 
 
-def arithm_eval_exp(exp: Expr) -> int:
-    return eval_exp(exp, atom_semantics, operator_semantics)
+def arithm_eval_exp(exp: Expr, invert: bool = False) -> int:
+    return eval_exp(exp, atom_semantics, operator_semantics, invert)
