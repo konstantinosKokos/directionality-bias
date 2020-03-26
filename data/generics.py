@@ -73,7 +73,8 @@ def eval_rexp(expr: Union[Atom, RightExpr],
               atom_semantics: Callable[[Atom], Domain],
               op_semantics: Mapping[Op, Callable[[Domain, Domain], Domain]]) -> Domain:
     if isinstance(expr, RightExpr):
-        return op_semantics[expr.op](atom_semantics(expr.right), eval_rexp(expr.left, atom_semantics, op_semantics))
+        return op_semantics[expr.op](atom_semantics(expr.left),
+                                     eval_rexp(expr.right, atom_semantics, op_semantics))
     else:
         return atom_semantics(expr)
 
