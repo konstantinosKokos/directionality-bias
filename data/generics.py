@@ -17,7 +17,7 @@ class Expr:
         pass
 
     def __str__(self):
-        return f'({str(self.left)} {str(self.op)} {str(self.right)})'
+        return f'( {str(self.left)} {str(self.op)} {str(self.right)} )'
 
     def __call__(self):
         return str(self)
