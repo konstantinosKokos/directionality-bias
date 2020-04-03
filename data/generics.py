@@ -33,29 +33,29 @@ def polish(expr) -> str:
     return expr.polish() if isinstance(expr, Expr) else str(expr)
 
 
-class BinaryLeftExpr(Expr, Generic[Atom, Op]):
-    def __init__(self, left: Union[Atom, 'BinaryLeftExpr'], right: Atom, op: Op) -> None:
-        super(BinaryLeftExpr, self).__init__()
+class LeftExpr(Expr, Generic[Atom, Op]):
+    def __init__(self, left: Union[Atom, 'LeftExpr'], right: Atom, op: Op) -> None:
+        super(LeftExpr, self).__init__()
         self.left = left
         self.right = right
         self.op = op
 
 
-class BinaryRightExpr(Expr, Generic[Atom, Op]):
-    def __init__(self, left: Atom, right: Union[Atom, 'BinaryRightExpr'], op: Op) -> None:
-        super(BinaryRightExpr, self).__init__()
+class RightExpr(Expr, Generic[Atom, Op]):
+    def __init__(self, left: Atom, right: Union[Atom, 'RightExpr'], op: Op) -> None:
+        super(RightExpr, self).__init__()
         self.left = left
         self.right = right
         self.op = op
 
 
 @overload
-def flip_expr(expr: BinaryLeftExpr[Atom, Op]) -> BinaryRightExpr[Atom, Op]:
+def flip_expr(expr: LeftExpr[Atom, Op]) -> RightExpr[Atom, Op]:
     pass
 
 
 @overload
-def flip_expr(expr: BinaryRightExpr[Atom, Op]) -> BinaryLeftExpr[Atom, Op]:
+def flip_expr(expr: RightExpr[Atom, Op]) -> LeftExpr[Atom, Op]:
     pass
 
 
@@ -65,49 +65,49 @@ def flip_expr(expr: Atom) -> Atom:
 
 
 def flip_expr(expr):
-    if isinstance(expr, BinaryLeftExpr):
-        return BinaryRightExpr(left=expr.right, right=flip_expr(expr.left), op=expr.op)
-    elif isinstance(expr, BinaryRightExpr):
-        return BinaryLeftExpr(left=flip_expr(expr.right), right=expr.left, op=expr.op)
+    if isinstance(expr, LeftExpr):
+        return RightExpr(left=expr.right, right=flip_expr(expr.left), op=expr.op)
+    elif isinstance(expr, RightExpr):
+        return LeftExpr(left=flip_expr(expr.right), right=expr.left, op=expr.op)
     else:
         return expr
 
 
-def sample_left_expr(depth: int, atoms: Atoms, ops: Ops) -> Union[BinaryLeftExpr[Atom, Op], Atom]:
+def sample_left_expr(depth: int, atoms: Atoms, ops: Ops) -> Union[LeftExpr[Atom, Op], Atom]:
     if depth == 0:
         return sample(atoms)
     else:
-        return BinaryLeftExpr(left=sample_left_expr(depth=depth - 1, atoms=atoms, ops=ops),
-                              right=sample(atoms),
-                              op=sample(ops))
+        return LeftExpr(left=sample_left_expr(depth=depth - 1, atoms=atoms, ops=ops),
+                        right=sample(atoms),
+                        op=sample(ops))
 
 
-def sample_right_expr(depth: int, atoms: Atoms, ops: Ops) -> Union[BinaryRightExpr[Atom, Op], Atom]:
+def sample_right_expr(depth: int, atoms: Atoms, ops: Ops) -> Union[RightExpr[Atom, Op], Atom]:
     if depth == 0:
         return sample(atoms)
     else:
-        return BinaryRightExpr(left=sample(atoms),
-                               right=sample_right_expr(depth=depth-1, atoms=atoms, ops=ops),
-                               op=sample(ops))
+        return RightExpr(left=sample(atoms),
+                         right=sample_right_expr(depth=depth-1, atoms=atoms, ops=ops),
+                         op=sample(ops))
 
 
 def sample(choices: List[Something]) -> Something:
     return choice(choices)
 
 
-def eval_lexp(expr: Union[Atom, BinaryLeftExpr],
+def eval_lexp(expr: Union[Atom, LeftExpr],
               atom_semantics: Callable[[Atom], Domain],
               op_semantics: Mapping[Op, Callable[[Domain, Domain], Domain]]) -> Domain:
-    if isinstance(expr, BinaryLeftExpr):
+    if isinstance(expr, LeftExpr):
         return op_semantics[expr.op](eval_lexp(expr.left, atom_semantics, op_semantics), atom_semantics(expr.right))
     else:
         return atom_semantics(expr)
 
 
-def eval_rexp(expr: Union[Atom, BinaryRightExpr],
+def eval_rexp(expr: Union[Atom, RightExpr],
               atom_semantics: Callable[[Atom], Domain],
               op_semantics: Mapping[Op, Callable[[Domain, Domain], Domain]]) -> Domain:
-    if isinstance(expr, BinaryRightExpr):
+    if isinstance(expr, RightExpr):
         return op_semantics[expr.op](atom_semantics(expr.left),
                                      eval_rexp(expr.right, atom_semantics, op_semantics))
     else:
@@ -120,9 +120,9 @@ def eval_exp(expr: Union[Atom, Expr],
              invert: bool = False) -> Domain:
     if invert:
         expr = flip_expr(expr)
-    if isinstance(expr, BinaryLeftExpr):
+    if isinstance(expr, LeftExpr):
         return eval_lexp(expr, atom_semantics, op_semantics)
-    elif isinstance(expr, BinaryRightExpr):
+    elif isinstance(expr, RightExpr):
         return eval_rexp(expr, atom_semantics, op_semantics)
     else:
         return atom_semantics(expr)
