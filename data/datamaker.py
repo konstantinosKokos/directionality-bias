@@ -29,5 +29,3 @@ def sample_dataset(depths: List[int], atom_list: List[Atom], op_list: List[Op], 
     return list(chain.from_iterable([
         post_proc([gen(depth, atom_list, op_list) for _ in range(numsamples)])
         for depth, numsamples in zip(depths, samples_per_depth)]))
-
-
