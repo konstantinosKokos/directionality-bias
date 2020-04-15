@@ -16,17 +16,20 @@ class Expr:
     def __init__(self):
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'( {str(self.left)} {str(self.op)} {str(self.right)} )'
 
-    def __call__(self):
+    def __call__(self) -> str:
         return str(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
     def polish(self) -> str:
         return f'{str(self.op)} {polish(self.left)} {polish(self.right)}'
+
+    def __len__(self) -> int:
+        return get_expr_len(self)
 
 
 def polish(expr) -> str:
@@ -126,3 +129,9 @@ def eval_exp(expr: Union[Atom, Expr],
         return eval_rexp(expr, atom_semantics, op_semantics)
     else:
         return atom_semantics(expr)
+
+def get_expr_len(expr: Union[Atom, Expr]) -> int:
+    if isinstance(expr, Expr):
+        return max(get_expr_len(expr.left), get_expr_len(expr.right)) + 1
+    else:
+        return 1
